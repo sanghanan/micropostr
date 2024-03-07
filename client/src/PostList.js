@@ -7,9 +7,10 @@ import CommentList from './CommentList';
 
 const PostList = () => {
     const [posts, setPosts] = useState({});
+    const QUERY_SERVICE_URL = 'http://localhost:4002/posts';
 
     useEffect(() => {
-        axios.get('http://localhost:4000/posts')
+        axios.get(QUERY_SERVICE_URL)
             .then(response => {
                 console.log(response.data);
                 setPosts(response.data);
@@ -29,7 +30,7 @@ const PostList = () => {
                     <Card >
                         <Card.Body>
                             <Card.Title>{post.content}</Card.Title>
-                            <CommentList postId={post.id} />
+                            <CommentList comments={post.comments} />
                             <CommentCreate postId={post.id} />
                         </Card.Body>
                     </Card>
