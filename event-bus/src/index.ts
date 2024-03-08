@@ -12,16 +12,25 @@ type Event = {
 };
 
 app.post('/events', async (req: Request, res: Response) => {
-    const event:Event = req.body;
+    const event: Event = req.body;
     console.log('Received event:', event);
-    try {
+    const listeners = [
+        'http://localhost:4000/events',
+        'http://localhost:4001/events',
+        'http://localhost:4002/events',
+        'http://localhost:4003/events'
+    ];
 
-        axios.post('http://localhost:4000/events', event);
-        axios.post('http://localhost:4001/events', event);
-        axios.post('http://localhost:4002/events', event);
+    try {
+        await Promise.all(listeners.map(url => 
+            axios.post(url, event).catch(error => {
+                console.error(`Error transmitting event to ${url}:`, error);
+                return error; // Return error to prevent Promise.all from failing fast.
+            })
+        ));
         res.status(200).send('Event transmitted successfully');
     } catch (error) {
-        console.error('Error transmitting event:', error);
+        console.error('Unexpected error:', error);
         res.status(500).send('Error transmitting event');
     }
 });

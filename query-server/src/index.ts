@@ -1,4 +1,4 @@
-import express, {Request, Response} from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
@@ -12,6 +12,7 @@ app.use(cors());
 type Comment = {
     id: string;
     content: string;
+    status: string;
 };
 
 type Post = {
@@ -35,10 +36,21 @@ app.post('/events', (req: Request, res: Response) => {
         const { id, content } = data;
         posts[id] = { id, content, comments: [] };
     } else if (type === 'CommentCreated') {
-        const { id, content, postId } = data;
+        const { id, content, postId, status } = data;
         const post = posts[postId];
         if (post) {
-            post.comments.push({ id, content });
+            post.comments.push({ id, content, status });
+        }
+    }
+    else if (type === 'CommentUpdated') {
+        const { id, content, postId, status } = data;
+        const post = posts[postId];
+        if (post) {
+            const comment = post.comments.find(comment => comment.id === id);
+            if (comment) {
+                comment.content = content;
+                comment.status = status;
+            }
         }
     }
     console.log(posts);
