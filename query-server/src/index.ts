@@ -1,9 +1,11 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import axios from 'axios';
 
 const app = express();
 const PORT = 4002;
+const EVENT_BUS_URL = 'http://localhost:4005/events';
 
 // Middleware
 app.use(bodyParser.json());
@@ -23,15 +25,7 @@ type Post = {
 
 const posts = {} as { [id: string]: Post };
 
-// GET /posts endpoint
-app.get('/posts', (req: Request, res: Response) => {
-    res.send(posts);
-});
-
-// POST /events endpoint
-app.post('/events', (req: Request, res: Response) => {
-    const { type, data } = req.body;
-
+const handleEvent = (type: string, data: any) => {
     if (type === 'PostCreated') {
         const { id, content } = data;
         posts[id] = { id, content, comments: [] };
@@ -53,11 +47,26 @@ app.post('/events', (req: Request, res: Response) => {
             }
         }
     }
-    console.log(posts);
+}
+
+// GET /posts endpoint
+app.get('/posts', (req: Request, res: Response) => {
+    res.send(posts);
+});
+
+// POST /events endpoint
+app.post('/events', (req: Request, res: Response) => {
+    const { type, data } = req.body;
+    handleEvent(type, data);
     res.send({});
 });
 
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
     console.log(`Server is running on port ${PORT}`);
+    const allEvents = await axios.get(EVENT_BUS_URL);
+    allEvents.data.forEach((event: any) => {
+        console.log('Processing event:', event);
+        handleEvent(event.type, event.data);
+    });
 });

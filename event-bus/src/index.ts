@@ -10,10 +10,12 @@ type Event = {
     type: string;
     data: Object;
 };
+const events: Event[] = [];
 
 app.post('/events', async (req: Request, res: Response) => {
     const event: Event = req.body;
     console.log('Received event:', event);
+    events.push(event);
     const listeners = [
         'http://localhost:4000/events',
         'http://localhost:4001/events',
@@ -33,6 +35,10 @@ app.post('/events', async (req: Request, res: Response) => {
         console.error('Unexpected error:', error);
         res.status(500).send('Error transmitting event');
     }
+});
+
+app.get('/events', (req: Request, res: Response) => {
+    res.send(events);
 });
 
 
