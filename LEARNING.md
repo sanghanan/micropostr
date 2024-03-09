@@ -111,4 +111,12 @@ This endpoint provides a consolidated view of posts and comments, effectively re
 
 ### Problems
 
-This architecture should scale well, and it is very decoupled. However, an important consideration is state consistency. Missed data and duplicated data and real problems with this approach.
+This architecture should scale well, and it is very decoupled. However, an important consideration is state consistency. Missed data and duplicated data and real problems with this approach. Event synchronization becomes extremely important.
+
+### Event Synchronization
+
+The easiest way to synchronize events is to have an event database. I used an in-memory data structure to function as an event store. This store acts as a persistent log of all events that pass through the event bus. When the Query Service, which plays a pivotal role in aggregating and serving data to clients, restarts after any downtime, it performs the following steps:
+1. The Query Service requests all historical events from the event store using a get request.
+2. It then processes these events in sequence to rebuild its internal state accurately, ensuring that it reflects the latest state of all posts and comments.
+
+Since this is a toy app, this is a reasonable solution. Real-world applications require a more robust solution to handle larger volumes of data and longer periods of downtime.
